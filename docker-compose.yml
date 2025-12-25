@@ -1,0 +1,47 @@
+services:
+  nginx:
+    container_name: night_web_nginx
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - PHP_HOST=php
+    depends_on:
+      - php
+      - mysql
+    volumes:
+      - ./html:/var/www/html
+
+  php:
+    container_name: night_web_php
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: local_image
+    image: night_web
+    depends_on:
+      - mysql
+    volumes:
+      - ./html:/var/www/html
+
+  mysql:
+    container_name: night_web_mysql
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: docker/mysql/Dockerfile
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password}
+      MYSQL_DATABASE: ${DB_DATABASE:-night_web}
+      MYSQL_USER: ${DB_USERNAME:-night_web}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      TZ: Asia/Tokyo
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
